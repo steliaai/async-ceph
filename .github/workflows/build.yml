@@ -1,0 +1,154 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v[0-9]+*"
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - ready_for_review
+      - synchronize
+    branches:
+      - main
+
+jobs:
+  doc:
+    name: Documentation
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-runner
+        with:
+          rust-toolchain: nightly
+
+      - name: Build docs
+        run: ./support/build-docs.sh
+
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-runner
+
+      - name: Build
+        id: build
+        run: cargo build --workspace --all-features
+
+      - name: Unit tests
+        run: cargo test --workspace --lib --all-features
+
+      - name: Doc tests
+        if: ${{ steps.build.conclusion == 'success' }}
+        run: cargo test --workspace --doc --all-features
+
+  loom-tests:
+    name: Unit tests (loom)
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-runner
+
+      - name: Loom tests
+        run: RUSTFLAGS="$RUSTFLAGS --cfg loom" cargo test --lib --all-features --profile loom
+
+  miri-tests:
+    name: Unit tests (miri)
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-runner
+        with:
+          rust-toolchain: nightly
+          rust-components: miri
+
+      - name: Miri tests
+        run: cargo miri test --target x86_64-unknown-linux-gnu --lib --all-features
+
+  integration-tests:
+    name: Integration tests (ASAN)
+    runs-on: ubuntu-26.04
+    # Don't bother running integration tests if the build fails or unit tests don't pass
+    needs:
+      - unit-tests
+      - loom-tests
+      - miri-tests
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-runner
+        with:
+          rust-toolchain: nightly
+          extra-apt-packages: lvm2 e2fsprogs iproute2 python3-jinja2 ssh ceph cephadm
+
+      # Required by cephadm, seemingly not done by install scripts
+      # In case this is ever fixed, allow it to fail
+      - name: Create ceph user
+        continue-on-error: true
+        run: |
+          sudo groupadd -g 167 ceph
+          sudo useradd -u 167 -g 167 ceph
+
+      # Note: Due to ceph 20.2.4 generating aes256k keys that are not
+      # understood by system ceph cli and rados libraries, pin the image to 20.2.3
+      # for now.
+      #
+      # TODO: Remove the explicit image once Ubuntu updates its Ceph packages.
+      - name: Bootstrap ceph cluster
+        run: |
+          mon_ip=$(ip route get 8.8.8.8 | grep -Po 'src \K[0-9\.]*')
+          sudo cephadm --image quay.io/ceph/ceph:v20.2.3 bootstrap -c ./support/ceph-bootstrap.conf --mon-ip $mon_ip
+
+      # Ceph doesn't allow creating an osd on a loop device directly. So we create a
+      # volume group on it and bind the osd to a logical volume instead.
+      - name: Create OSD volume
+        run: |
+          fallocate -l 6G loop-osd
+          sudo losetup /dev/loop0 loop-osd
+          sudo vgcreate vg /dev/loop0
+          sudo lvcreate -L 5.5G -n osd vg
+
+      # Note: The sleep is needed as cephadm bootstrap returns before the cluster
+      # is actually ready. Without the wait the `ceph orch` command will exit without
+      # failing??!
+      #
+      # TODO: Properly wait until the cluster is fully ready
+      - name: Create OSD
+        run: |
+          sleep 5
+          sudo ceph orch daemon add osd "$(hostname):/dev/vg/osd"
+          sudo ceph osd status
+
+      - name: Copy ceph config to repo
+        run: sudo cat /etc/ceph/ceph.conf /etc/ceph/ceph.client.admin.keyring > ./ceph.conf
+
+      - name: Run integration tests
+        run: >-
+          RUSTFLAGS="$RUSTFLAGS -Zsanitizer=address" \
+            cargo test --target x86_64-unknown-linux-gnu \
+            --test '*' --all-features --no-fail-fast -- --test-threads=1
+
+      - name: Test benchmarks (ASAN)
+        run: >-
+          RUSTFLAGS="$RUSTFLAGS -Zsanitizer=address" \
+            cargo test --target x86_64-unknown-linux-gnu \
+            --workspace --all-features --benches
+
+  ci-is-green:
+    name: CI is green
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - doc
+      - unit-tests
+      - loom-tests
+      - miri-tests
+      - integration-tests
+
+    steps:
+      - name: Check if all jobs succeeded
+        uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}

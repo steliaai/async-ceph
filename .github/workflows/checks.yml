@@ -1,0 +1,61 @@
+name: Checks
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v[0-9]+*"
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - ready_for_review
+      - synchronize
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cargo-deny:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Lint dependency tree
+        uses: EmbarkStudios/cargo-deny-action@175dc7fd4fb85ec8f46948fb98f44db001149081 # v2.0.16
+
+  rustfmt:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-runner
+        with:
+          rust-toolchain: nightly
+          rust-components: rustfmt
+      - run: cargo fmt --check --all -- --files-with-diff
+
+  clippy:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-runner
+        with:
+          rust-toolchain: '1.88.0'
+          rust-components: clippy
+      - run: RUSTFLAGS="-D warnings" cargo clippy --workspace --all-features
+
+  ci-is-green:
+    name: CI is green
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - cargo-deny
+      - rustfmt
+      - clippy
+    steps:
+      - name: Check if all jobs succeeded
+        uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}

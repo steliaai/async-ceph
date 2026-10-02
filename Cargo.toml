@@ -1,0 +1,116 @@
+[workspace]
+resolver = "3"
+members = [
+    "bindings-gen",
+    "rados-sys",
+    "rbd-sys",
+    "cephfs-sys"
+]
+
+[workspace.package]
+license = "MIT OR Apache-2.0"
+edition = "2024"
+rust-version = "1.88"
+authors = ["Stelia Ltd"]
+repository = "https://github.com/steliaai/async-ceph"
+version = "0.1.0"
+
+[workspace.dependencies]
+ceph-bindings-gen = { version = "0.1.0", path = "bindings-gen" }
+bindgen = "0.73.2"
+
+[package]
+name = "async-ceph"
+description = "Async Rust bindings for Ceph's RADOS, RBD and CephFS libraries"
+keywords = ["ceph", "rados", "rbd", "cephfs", "async"]
+categories = ["asynchronous", "api-bindings", "filesystem"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+exclude = [
+    ".cargo/*",
+    ".github/*",
+    "benches/*",
+    "support/*",
+    "tests/*"
+]
+
+[[bench]]
+name = "image_aio"
+harness = false
+required-features = ["tokio_rt", "rbd_v1-19"]
+
+[[test]]
+name = "rados"
+required-features = ["tokio_rt"]
+
+[[test]]
+name = "rados_early_drop"
+required-features = ["tokio_rt", "rbd_v1-19"]
+
+[[test]]
+name = "rbd"
+required-features = ["tokio_rt", "rbd_v1-19"]
+
+[features]
+tokio_rt = ["dep:tokio", "tokio/rt"]
+cephfs = ["dep:cephfs-sys"]
+rbd = ["dep:rbd-sys", "rbd_v1-17"] # alias for v1-17, as it's the lowest we support
+# librbd version feature gates
+rbd_v1-17 = ["rbd-sys/v1-17", "rbd"]
+rbd_v1-18 = ["rbd-sys/v1-18", "rbd_v1-17", "rbd_encryption"]
+rbd_v1-19 = ["rbd-sys/v1-19", "rbd_v1-18", "rbd_encryption_load2", "rbd_compare_and_write_iovec"]
+rbd_v1-20 = ["rbd-sys/v1-20", "rbd_v1-19", "rbd_group_snap_get_info", "rbd_diff_iterate3"]
+# librbd fine-grained API support feature gates
+# can be used to enable backported features
+rbd_compare_and_write_iovec = ["rbd-sys/compare_and_write_iovec"]
+rbd_encryption = ["rbd-sys/encryption"]
+rbd_encryption_load2 = ["rbd-sys/encryption_load2"]
+rbd_group_snap_get_info = ["rbd-sys/group_snap_get_info"]
+rbd_diff_iterate3 = ["rbd-sys/diff_iterate3"]
+
+[dependencies]
+rados-sys = { path = "rados-sys", version = "0.1.0" }
+rbd-sys = { path = "rbd-sys", version = "0.1.0", optional = true }
+cephfs-sys = { path = "cephfs-sys", version = "0.1.0", optional = true }
+futures-util = { version = "0.3.34", default-features = false, features = ["async-await"] }
+futures-channel = { version = "0.3.34" }
+libc = "0.2.189"
+tracing = "0.1.44"
+bitflags = "2.13.2"
+bytes = { version = "1.12.1", optional = true }
+tokio = { version = "1.53.1", optional = true }
+thiserror = "2.0.20"
+uuid = { version = "1.26.1", features = ["v7"] }
+pin-project = "1.1.13"
+
+[target.'cfg(loom)'.dependencies]
+loom = { version = "0.7.2", features = ["futures"] }
+tokio = { version = "1.53.1", features = ["sync"] }
+
+[dev-dependencies]
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "net", "macros", "time"] }
+serial_test = "4.0.1"
+rstest = "0.27.0"
+criterion = { version = "0.8.2", features = ["async_tokio"] }
+tracing-subscriber = "0.3.23"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ["cfg(loom)"]
+
+[package.metadata.docs.rs]
+all-features = true
+default-target = "x86_64-unknown-linux-gnu"
+targets = []
+rustc-args = ["--cfg", "ceph_sys_bundled"]
+rustdoc-args = ["--cfg", "docsrs"]
+
+[profile.loom]
+inherits = "release"
+debug-assertions = true
+overflow-checks = true
+debug = true

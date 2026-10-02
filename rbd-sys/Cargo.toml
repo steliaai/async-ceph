@@ -1,0 +1,66 @@
+[package]
+name = "rbd-sys"
+description = "Low-level FFI bindings to Ceph's librbd"
+keywords = ["ceph", "rbd", "librbd"]
+categories = ["external-ffi-bindings", "filesystem"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[features]
+# librbd fine-grained API support feature gates.
+#
+# Due to backports some are available on librbd versions that didn't include them at first.
+# For example, librbd 1.19 does not support diff_iterate3 but the one that ships with
+# Ceph 19.2.3 does.
+aio_flush = []
+aio_open = []
+compare_and_write = []
+compare_and_write_iovec = []
+locking = []
+invalidate = []
+iovec = []
+watch = []
+writesame = []
+write_zeroes = []
+encryption = []
+encryption_load2 = []
+group_snap_get_info = []
+diff_iterate3 = []
+
+v1-17 = [
+    "aio_flush",
+    "aio_open",
+    "locking",
+    "invalidate",
+    "iovec",
+    "watch",
+    "compare_and_write",
+    "writesame",
+    "write_zeroes"
+]
+v1-18 = ["v1-17", "encryption"]
+v1-19 = ["v1-18", "encryption_load2", "compare_and_write_iovec"]
+v1-20 = ["v1-19", "group_snap_get_info", "diff_iterate3"]
+
+[target.'cfg(not(ceph_sys_bundled))'.build-dependencies]
+ceph-bindings-gen.workspace = true
+bindgen.workspace = true
+regex-lite = "0.1.9"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = [
+    "cfg(ceph_sys_bundled)",
+    "cfg(ceph_sys_pregen_bindings)"
+]
+
+[package.metadata.docs.rs]
+all-features = true
+default-target = "x86_64-unknown-linux-gnu"
+targets = []
+rustc-args = ["--cfg", "ceph_sys_bundled"]
+rustdoc-args = ["--cfg", "docsrs"]

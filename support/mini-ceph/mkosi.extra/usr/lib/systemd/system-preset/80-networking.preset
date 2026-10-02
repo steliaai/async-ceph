@@ -1,0 +1,4 @@
+# priority of 80 is somewhat arbitrary, important is that it's lower than
+# that of other presets present on the image
+enable systemd-networkd.service
+enable systemd-resolved.service

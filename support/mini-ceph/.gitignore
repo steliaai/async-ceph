@@ -1,0 +1,9 @@
+/mkosi.cache
+.mkosi-private
+*.efi
+*.initrd
+*.raw
+*.vmlinuz
+initrd
+initrd.*
+image

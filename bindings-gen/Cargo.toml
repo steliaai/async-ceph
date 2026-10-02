@@ -1,0 +1,15 @@
+[package]
+name = "ceph-bindings-gen"
+description = "Rust bindings generator for the rados-sys, rbd-sys and cephfs-sys crates"
+keywords = ["ceph", "ffi", "bindgen"]
+categories = ["development-tools::ffi"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+bindgen.workspace = true
+rustflags = "0.1.7"
