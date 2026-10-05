@@ -166,6 +166,8 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Licensing
 
+All greenfield developed software (source code, scripts, tests, etc.) in this repository is (c) 2026 Stelia Ltd and dual licensed under MIT and Apache-2.0 terms. The licenses are distributed as `LICENSE-MIT` and `LICENSE-APACHE`, respectively.
+
 The `async-ceph` crate contains code from the [`tokio-uring`](https://github.com/tokio-rs/tokio-uring) project, with minor modifications, licensed under MIT:
 
 ```txt
