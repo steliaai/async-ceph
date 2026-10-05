@@ -46,7 +46,7 @@ Note that the above **is not a roadmap**.
 ### Project Goals & Sustainability
 
 This open-source release aims to promote industry standardization and ecosystem adoption for asynchronous Rust applications built on Ceph.
-The `@steliaai/platform-engineering` team is committed to actively maintaining this project. We guarantee designated internal maintainers will triage issues, review pull requests, and publish releases for at least **12 months** from the initial public release. While we will prioritize the implementation of APIs required for our internal use cases, external contributions are always welcome.
+The `@steliaai/platform-engineering` team is committed to actively maintaining this project.
 
 ### RBD API Support
 
