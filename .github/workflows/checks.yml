@@ -46,8 +46,8 @@ jobs:
           rust-components: clippy
       - run: RUSTFLAGS="-D warnings" cargo clippy --workspace --all-features
 
-  ci-is-green:
-    name: CI is green
+  checks-are-green:
+    name: Checks CI is green
     runs-on: ubuntu-latest
     if: always()
     needs:

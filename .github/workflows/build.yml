@@ -136,8 +136,8 @@ jobs:
             cargo test --target x86_64-unknown-linux-gnu \
             --workspace --all-features --benches
 
-  ci-is-green:
-    name: CI is green
+  build-is-green:
+    name: Build CI is green
     runs-on: ubuntu-latest
     if: always()
     needs:
