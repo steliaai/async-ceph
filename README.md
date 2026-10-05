@@ -3,7 +3,8 @@
 ![Crates.io Version](https://img.shields.io/crates/v/async-ceph)
 ![Crates.io MSRV](https://img.shields.io/crates/msrv/async-ceph)
 ![docs.rs](https://img.shields.io/docsrs/async-ceph)
-![GitHub branch check runs](https://img.shields.io/github/check-runs/steliaai/async-ceph/main?nameFilter=CI%20is%20green)
+![GitHub checks CI](https://img.shields.io/github/check-runs/steliaai/async-ceph/main?nameFilter=Checks%20CI%20is%20green&label=checks)
+![GitHub build CI](https://img.shields.io/github/check-runs/steliaai/async-ceph/main?nameFilter=Build%20CI%20is%20green&label=build)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/steliaai/async-ceph/badge)](https://scorecard.dev/viewer/?uri=github.com/steliaai/async-ceph)
 
 High level Async Rust bindings to librados, librbd and libcephfs.
