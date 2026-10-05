@@ -1,5 +1,11 @@
 # async-ceph
 
+![Crates.io Version](https://img.shields.io/crates/v/async-ceph)
+![Crates.io MSRV](https://img.shields.io/crates/msrv/async-ceph)
+![docs.rs](https://img.shields.io/docsrs/async-ceph)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/steliaai/async-ceph/main?nameFilter=CI%20is%20green)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/steliaai/async-ceph/badge)](https://scorecard.dev/viewer/?uri=github.com/steliaai/async-ceph)
+
 High level Async Rust bindings to librados, librbd and libcephfs.
 
 While these libraries expose callback-based asynchronous APIs for a small subset of their functionality (mostly IO), the bulk of it is only available through blocking APIs. If you need to be careful not to block the executor, this has either leads to significant boilerplate through repeated `spawn_blocking` calls, or having to design the application such that RADOS/RBD blocking logic is isolated from the application's async code.
