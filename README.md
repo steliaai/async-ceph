@@ -46,7 +46,7 @@ Note that the above **is not a roadmap**.
 ### Project Goals & Sustainability
 
 This open-source release aims to promote industry standardization and ecosystem adoption for asynchronous Rust applications built on Ceph.
-The `@steliaai/platform-engineering` team is committed to actively maintaining this project. We guarantee designated internal maintainers will triage issues, review pull requests, and publish releases for at least **12 months** from the initial public release. While we will prioritize the implementation of APIs required for our internal use cases, external contributions are always welcome.
+The `@steliaai/platform-engineering` team is committed to actively maintaining this project.
 
 ### RBD API Support
 
@@ -165,6 +165,8 @@ By default, `rbd-sys` and `rados-sys` will emit `cargo:rustc-link-lib` instructi
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Licensing
+
+All greenfield developed software (source code, scripts, tests, etc.) in this repository is (c) 2026 Stelia Ltd and dual licensed under MIT and Apache-2.0 terms. The licenses are distributed as `LICENSE-MIT` and `LICENSE-APACHE`, respectively.
 
 The `async-ceph` crate contains code from the [`tokio-uring`](https://github.com/tokio-rs/tokio-uring) project, with minor modifications, licensed under MIT:
 
