@@ -9,7 +9,7 @@
 
 High level Async Rust bindings to librados, librbd and libcephfs.
 
-While these libraries expose callback-based asynchronous APIs for a small subset of their functionality (mostly IO), the bulk of it is only available through blocking APIs. If you need to be careful not to block the executor, this has either leads to significant boilerplate through repeated `spawn_blocking` calls, or having to design the application such that RADOS/RBD blocking logic is isolated from the application's async code.
+While these libraries expose callback-based asynchronous APIs for a small subset of their functionality (mostly IO), the bulk of it is only available through blocking APIs. If you need to be careful not to block the executor, this either leads to significant boilerplate through repeated `spawn_blocking` calls, or having to design the application such that RADOS/RBD blocking logic is isolated from the application's async code.
 
 This crate aims to solve this burden while remaining runtime agnostic by abstracting over async executors that provides an IO threadpool through the `async_ceph::async_rt::Executor` trait. After an `Executor` implementation is provided to the `RadosClient` constructor, traditionally blocking librados/librbd/libcephfs operations can be seamlessly called from an `async` context.
 

@@ -78,7 +78,7 @@ impl<T> Slice<T> {
         self.begin
     }
 
-    /// Ofset in the underlying buffer at which this slice ends.
+    /// Offset in the underlying buffer at which this slice ends.
     ///
     /// # Examples
     ///
